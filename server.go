@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"encoding/json"
 )
@@ -15,7 +16,7 @@ func main() {
 	http.Handle("/", http.StripPrefix("/", react))
 	http.Handle("/storage/", http.StripPrefix("/storage/", storage))
 
-	http.HandleFunc("/albums", handleAlbum)
+	http.HandleFunc("/albums", handleAlbums)
 	http.HandleFunc("/songs", handleMusic)
 	http.HandleFunc("/upload", handleUpload)
 	
@@ -24,11 +25,13 @@ func main() {
 	}
 }
 
-func handleAlbum(w http.ResponseWriter, r *http.Request) {
+func handleAlbums(w http.ResponseWriter, r *http.Request) {
 	albums, _ := ioutil.ReadDir("storage/albums")
-	albumNames := list.List()
+	albumNames := make([]string, 0)
 	for _, album := range albums {
-		albumNames.PushBack(album.Name());
+		if album.Name() != "index.html" {
+			albumNames = append(albumNames, album.Name());
+		}
 	}
 	j, err := json.Marshal(albumNames)
 	if err != nil {
@@ -39,7 +42,21 @@ func handleAlbum(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleMusic(w http.ResponseWriter, r *http.Request) {
-
+	q, _ := url.ParseQuery(r.URL.RawQuery)
+	albumName := q["album"][0]
+	songs, _ := ioutil.ReadDir("storage/albums/" + albumName)
+	songNames := make([]string, 0)
+	for _, song := range songs {
+		if song.Name() != "index.html"  {
+			songNames = append(songNames, song.Name());
+		}
+	}
+	j, err := json.Marshal(songNames)
+	if err != nil {
+		fmt.Print(err)
+		return
+	}
+	fmt.Fprintf(w, "%v", string(j))
 }
 
 func handleUpload(w http.ResponseWriter, r *http.Request) {
