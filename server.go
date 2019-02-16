@@ -9,7 +9,9 @@ import (
 
 
 func main() {
-	http.HandleFunc("/", handleUpload)
+	fs := http.FileServer(http.Dir("static"))
+  	http.Handle("/static/", http.StripPrefix("/static/", fs))
+	http.HandleFunc("/upload", handleUpload)
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		panic(err)
 	}
@@ -17,6 +19,7 @@ func main() {
 
 
 func handleUpload(w http.ResponseWriter, r *http.Request) {
+	fmt.Print("Uploading")
 	r.ParseMultipartForm(32 << 20)
 	file, handler, err := r.FormFile("music")
 	if err != nil {
