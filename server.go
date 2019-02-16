@@ -1,4 +1,4 @@
-package musichacks
+package main
 
 import (
 	"fmt"
