@@ -5,15 +5,14 @@ import (
 	"io"
 	"net/http"
 	"os"
-
-	"google.golang.org/appengine"
 )
 
 
 func main() {
-
 	http.HandleFunc("/", handleUpload)
-	appengine.Main()
+	if err := http.ListenAndServe(":8080", nil); err != nil {
+		panic(err)
+	}
 }
 
 
